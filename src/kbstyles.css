@@ -1,0 +1,23 @@
+body {
+    height: 500px;
+}
+#kb1 {
+    width: 100%;
+    height: 50%;
+    display: block;
+    display: inline-flex;
+    text-align: center;
+    }
+#kb2 {
+    width: 100%;
+    height: 50%;
+    display: inline-flex;
+
+}
+
+button{
+    background-color: #00bbcc;
+    width: 30%;
+    color: #fff;
+    font-size: 40px;
+}

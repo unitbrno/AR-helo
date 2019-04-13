@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>A-FRAME DEMO</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="aframe.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="res/aframe-html-shader.min.js"></script>
+    <script src="ui_scripts.js"></script>
+    <script src="raycaster.js"></script>
+</head>
+<script>
+    var last_selected_plane = null;
+    var last_selected_border = null;
+
+    var state = 2;
+    var menuState = 0;
+    var todoListPosition = 0;
+
+    function get_html_of_plane(plane_id)
+    {
+        if (plane_id == "mid_plane")
+        {
+            return document.querySelector('#mid_planeHTML');
+        }
+        else if (plane_id == "left_plane")
+        {
+            return document.querySelector('#left_planeHTML');
+        }
+        else if (plane_id == "right_plane")
+        {
+            return document.querySelector('#right_planeHTML');
+        }
+    }
+
+    function select_new_plane(new_object)
+    {
+        obj_id = new_object.getAttribute('id');
+        new_html_obj = get_html_of_plane(obj_id)
+        if (last_selected_plane != null)
+        {
+            old_html_obj = get_html_of_plane(last_selected_plane.getAttribute('id'));
+            old_html_obj.style.border = last_selected_border;
+        }
+        last_selected_border = new_html_obj.style.border;
+        last_selected_plane = new_object
+        new_html_obj.style.border = "3px solid blue";
+    }
+
+    register_raycaster_callback( select_new_plane );
+
+    setup_time_component();
+</script>
+<body>
+    <a-scene>
+        <a-asset>
+            <img visible="false" id="alert_img" src="./res/alert.jpg">
+            <img visible="true"  id="manual_img" src="./res/part2.png">
+        </a-asset>
+        <a-sky color="#ECECEC"></a-sky>
+        <a-light type="ambient" color="#FFF"></a-light>
+
+        <a-entity id="world" position="0 0 0" rotation="0 180 0">
+
+            <a-entity id="y-following">
+                <!-- 
+                <a-entity position="0 -0.982 -0.57" rotation="-59.99999999999999 0 0" geometry="primitive:plane" material="src:https://st3.depositphotos.com/4497765/17964/v/1600/depositphotos_179642906-stock-illustration-super-cool-comic-book-style.jpg"></a-entity>
+                -->            
+            </a-entity>
+
+            <a-entity id="planes" position="0 0 0" rotation="0 0 0" visibl>
+                <!-- Middle -->
+                <a-plane id="mid_plane" class="collidable" height="0.8" width="0.8" rotation="0 0 0" position="0 0 -1.38" color="#fff" material="shader: html; target: #mid_planeHTML; ratio: height; transparent: true; side: double; fps: 5" ></a-plane>
+                <!-- Right -->
+                <a-plane id="right_plane" class="collidable" height="0.8" width="0.8" rotation="0 -45 0" position="1 0 -1" color="#fff" material="shader: html; target: #right_planeHTML; ratio: height; transparent: true; side: double; fps: 5" ></a-plane>
+                <!-- Left -->
+                <a-plane id="left_plane" class="collidable" height="0.8" width="0.8" rotation="0 45 0" position="-1 0 -1" color="#fff" material="shader: html; target: #left_planeHTML; ratio: height; transparent: true; side: double; fps: 5" >
+                    <a-entity id="image" scale="0.7 0.7 0" geometry="primitive:plane" material="src: #manual_img"></a-entity>
+                </a-plane>
+            </a-entity>
+            
+            <!-- Debug crosshair and frame
+            <a-entity id="worldcenter" line="start: -0.02 0.02 -0.9; end: 0.02 -0.02 -1; color: cyan" line__2="start: -0.02, -0.02, -0.9; end: 0.02 0.02 -0.9; color: cyan"></a-entity>
+            -->
+        </a-entity>
+
+        <a-camera id="camera" camera="active:true" position="0 0 0" rotation-reader collider-check>
+            <a-entity id="caster" raycaster="objects: .collidable;" position="0 0 0" rotation="0 0 0"></a-entity>
+            
+            <a-entity id="alert">
+                <a-entity id="alert_ent" scale="0.05 0.05 0.02" position="-0.15 0.12 -0.633" geometry="primitive:plane" material="src: #alert_img" visible="false"></a-entity>
+                <a-text id="alert_text" color="red" scale="0.2 0.2 0" position="-0.19 0.19 -1" text-text value="Alert read messages!" side="double" visible="false"> 
+                    
+                    <a-animation attribute="scale" dur="1500" from="0.2 0.2 0" to="0.23 0.23 0" repeat="indefinite" ease="easeInOutQuad"> </a-animation>
+                </a-text>
+            </a-entity>
+            <a-text id="clock" scale="0.3 0.3 0" position="0.15 0.35 -1" clock-text value="todo" side="double"></a-text>
+            
+            <!-- Debug crosshair and frame 
+            <a-entity id="crosshair" line="start: -0.02 0.02 -0.9; end: 0.02 -0.02 -0.9; color: #FF00FF"
+            <a-entity line="start: -0.36, 0.39, -1; end: -0.36, -0.3, -1; color: #fff;"></a-entity> 
+            <a-entity line="start: 0.36, 0.39, -1; end: 0.36, -0.3, -1; color: #fff;"></a-entity> 
+            <a-entity line="start: -0.36 0.39, -1; end: 0.36, 0.39, -1; color: #fff;"></a-entity> 
+            <a-entity line="start: -0.36, -0.30, -1; end: 0.36, -0.30, -1; color: #fff;"></a-entity>
+            -->
+        </a-camera>
+        
+    </a-scene>
+
+    <!-- HTML to render as material -->
+    <div id="mid_planeHTML" style="border: 3px solid; border-color: cyan; width: 60%; height: 100%; position: fixed; left: 0; top: 0; z-index: -1; overflow: hidden; border-radius: 30px;">
+        <div id="manual" style="display: block; margin: 20px;" >
+            <div id="man1p1" class="man">
+                <h1>Odvodnení čističe paliva</h1>
+            </div>
+            <div id="man1p2" class="man">
+                <h2>1.</h2>
+                <p>Stáhnout příchytnou svorku -3- a regulační ventil -2- s připojenými palivovými vedeními odejmout.</p>
+            </div>
+            <div id="man1p3" class="man">
+                    <h2>2.</h2>
+                    <p>Povolit odvodňovací šroub -7- a nechat 7 vytéci cca 0,11 kapaliny.</p>
+            </div>
+            <div id="man1p4" class="man">
+                    <h2>3.</h2>
+                    <p>Namontovat regulační ventil -2- a umístitI příchytnou svorku -3-.</p>
+            </div>
+            <div id="man1p5" class="man">
+                    <h2>4.</h2>
+                    <p>Utáhnout odvodňovací šroub -7-.</p>
+            </div>
+            <div id="man1p6" class="man">
+                    <h2>5.</h2>
+                    <p>Provést kontrolu palivového systému na těsnost (pohledová kontrola).</p>
+            </div>
+        </div>
+    </div>
+    <div id="left_planeHTML" style="border: 3px solid; border-color: cyan; width: 60%; height: 100%; position: fixed; left: 0; top: 0; z-index: -1; overflow: hidden; border-radius: 30px;">
+    
+    </div>
+    <div id="right_planeHTML" style="border: 3px solid; border-color: cyan; width: 60%; height: 100%; position: fixed; left: 0; top: 0; z-index: -1; overflow: hidden; border-radius: 30px;">
+        <div id="todolist" style="line-height: 100%; text-align: center; font-size: 1.3em; vertical-align: middle; margin: auto;">
+                <div>
+                        <span style="font-size: 30px; color: #ffff66; text-align: left; ">
+                            Odvodnení čističe paliva
+                        </span>
+                        <span  style="font-size: 30px; color: rgb(255, 0,0); text-align: right;">X</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 30px; color: rgb(255, 255, 255); text-align: center; ">
+                            Výměna chladíci kapaliny
+                        </span>
+                        <span style="font-size: 30px; color: rgb(255, 0, 0); text-align: center;">X</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 30px; color: rgb(255, 255, 255); text-align: center;">
+                            Kontrola a nastavení ventilové vůle
+                        </span>
+                        <span  style="font-size: 30px; color: rgb(255,0,0); text-align: center;">X</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 30px; color: rgb(255, 255, 255); text-align: center; ">
+                            Kontrola pneumatik
+                        </span>
+                        <span style="font-size: 30px; color: rgb(255, 0,0); text-align: center;">X</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 30px; color: rgb(255, 255, 255); text-align: center; ">
+                            Kontrola tlouštky brzdového obložení
+                        </span>
+                        <span style="font-size: 30px; color: rgb(255,0,0); text-align: center;">X</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 30px; color: rgb(255, 255, 255); text-align: center;">
+                                Kontrola hladiny brzdové kvapaliny
+                        </span>
+                        <span  style="font-size: 30px; color: rgb(255,0,0); text-align: center;">X</span>
+                        </div>
+                        <div>
+                            <span style="font-size: 30px; color: rgb(255, 255, 255); text-align: center; ">
+                                Kontrola a seřízení svetlometů
+                            </span>
+                            <span style="font-size: 30px; color: rgb(255, 0,0); text-align: center;">X</span>
+                        </div>
+                        <div>
+                            <span style="font-size: 30px; color: rgb(255, 255, 255); text-align: center; ">
+                                Zkušební jízda
+                            </span>
+                            <span style="font-size: 30px; color: rgb(255, 0, 0); text-align: center;">X</span>
+                        </div>  
+        </div>
+    </div>
+
+    <!-- ON DOCUMENT LOAD -->
+    <script>
+        var visStage = 2;
+        setup_dev_mode();  // shifts world properly on win chrome
+        $(function(){
+            var socket = io();
+            socket.on('helo', function(msg){
+                console.log('helo:' + msg);
+                if (msg.startsWith('kp:'))
+                {
+                    var event = new CustomEvent('buttonpress', { 'detail': {'name': msg.substr(3) }});
+                    document.dispatchEvent(event);
+                }
+    
+                if (msg === "kp:button5")
+                {
+                    if(visStage > 0){
+
+                        visStage--;
+                    }
+                }
+                else if (msg == "kp:button2")
+                {
+                    if(visStage < 2){
+                        
+                        visStage++;
+                    }
+                }
+                else if (msg == "kp:button1")
+                {
+                    reset_reference();
+                }
+                else if (msg.startsWith('kp:'))
+                {
+                    if (last_selected_plane != null && last_selected_plane.getAttribute('id') == 'right_plane')
+                    {
+                        todoInteraction(msg);
+                    }
+                    else if (last_selected_plane.getAttribute('id') == 'mid_plane')
+                    {
+                        if (msg == "kp:button4")
+                        {
+                            scroll_man_left();
+                        }
+                        else if (msg == "kp:button6")
+                        {
+                            scroll_man_right();
+                        }
+                        else if (msg == "kp:alert")
+                        {
+                            hide_alert();
+                        }
+                    }
+                }
+                else if (msg.startsWith('alert:'))
+                {
+                    console.log('alert from server:' + msg);
+                    show_alert(msg.substr(6));
+                }
+                if(visStage == 0){
+                    hide();
+                }
+                else if (visStage == 1){
+                    move_down();
+                }else if (visStage == 2){
+                    move_up();
+                }
+            });
+            
+            scroll_man_left();
+            /*
+            document.addEventListener('buttonpress', function(e){
+                console.log('buttonpress: ' + e.detail.name)  // for example 'button1'
+            });*/
+    
+
+        });
+    </script>
+</body>
+</html>
