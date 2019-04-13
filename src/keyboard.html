@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Keyboard</title>
+</head>
+<link rel="stylesheet" href="kbstyles.css">
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+<script>
+    var g_sock = null;
+
+    function alertAR(message)
+    {
+        if (g_sock != null)
+        {
+            g_sock.emit('helo', 'alert:' + message);
+        }
+    }
+
+    $(function(){
+    var socket = io();
+    $("button").click(function(e){
+        e.preventDefault();
+        socket.emit('helo', 'kp:' + $(this).attr('id'));
+        return false;
+    });
+    socket.on('helo', function(msg){
+        console.log('helo:' + msg);
+    });
+    g_sock = socket;
+});
+
+</script>
+<body>
+    <div id="kb1">
+        <button id="button1">center</button>
+        <button id="button2">^</button>
+        <button id="button3">select</button>
+    </div>
+    <div id="kb2">
+        <button id="button4"><</button>
+        <button id="button5">v</button>
+        <button id="button6">></button>
+    </div>
+    <button id="alert">Alert!</button>
+</body>

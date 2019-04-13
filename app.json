@@ -1,0 +1,22 @@
+{
+  "addons": [
+
+  ],
+  "buildpacks": [
+    {
+      "url": "	heroku/nodejs"
+    }
+  ],
+  "description": "Team Helo's take on Unit Hackathon",
+  "env": {
+  },
+  "formation": {
+    "web": {
+      "quantity": 1
+    }
+  },
+  "name": "unithelo",
+  "scripts": {
+  },
+  "stack": "heroku-18"
+}
